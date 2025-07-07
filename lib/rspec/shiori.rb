@@ -90,6 +90,7 @@ class RspecShiori
   def call_stack_files
     files = @call_stack.map { |entry| entry[:path] }
       .reject{|path|path.match(/\<.*?\>/)}
+      .reject{|path|path.match(/\(.*?\)/)}
       .reject{|path|path.match(/\/.rbenv\//)}
     files << @example.metadata[:absolute_file_path]
     files.sort.uniq
