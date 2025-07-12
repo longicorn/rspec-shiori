@@ -28,7 +28,9 @@ class RspecShiori
   def initialize(cache_dir:)
     @cache_dir = cache_dir
     @cache = RspecShioriCache.new(cache_dir)
+    @disable = false
   end
+  attr_accessor :disable
 
   class Example
     def initialize(example, files_cache:, spec_cache:)
@@ -134,11 +136,17 @@ class RspecShiori
   end
 
   def spec(example)
-    exp = Example.new(example, files_cache: @files_cache, spec_cache: @spec_cache)
-    yield exp
+    if @disable
+      example.run
+    else
+      exp = Example.new(example, files_cache: @files_cache, spec_cache: @spec_cache)
+      yield exp
+    end
   end
 
   def read_cache(key, example = nil)
+    return if @disable
+
     case key
     when :file
       @files_cache = {}
@@ -158,6 +166,8 @@ class RspecShiori
   end
 
   def write_cache
+    return if @disable
+
     files_cache = {}
     @files_cache.each do |path, hash|
       files_cache[path] = hash['digest']
@@ -176,13 +186,14 @@ def RSpec.shiori
 end
 
 RSpec.configuration.before(:suite) do |config|
+  RSpec.shiori.disable = ENV['SHIORI'] == 'false'
   RSpec.shiori.read_cache(:file)
 end
 
 RSpec.configuration.around(:each) do |example|
   RSpec.shiori.read_cache(:spec, example)
   RSpec.shiori.spec(example) do |shiori_spec|
-    if shiori_spec.skip?
+    if shiori_spec.skip? && example.metadata[:shiori] != false
       example.skip
       next
     end
