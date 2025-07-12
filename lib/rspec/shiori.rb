@@ -182,7 +182,7 @@ end
 RSpec.configuration.around(:each) do |example|
   RSpec.shiori.read_cache(:spec, example)
   RSpec.shiori.spec(example) do |shiori_spec|
-    if shiori_spec.skip?
+    if shiori_spec.skip? && example.metadata[:shiori] != false
       example.skip
       next
     end
