@@ -25,13 +25,6 @@ class RspecShioriCache
 end
 
 class RspecShiori
-  def initialize(cache_dir:)
-    @cache_dir = cache_dir
-    @cache = RspecShioriCache.new(cache_dir)
-    @disable = false
-  end
-  attr_accessor :disable
-
   class Example
     def initialize(example, files_cache:, spec_cache:)
       @example = example
@@ -134,6 +127,15 @@ class RspecShiori
       files.sort.uniq
     end
   end
+end
+
+class RspecShiori
+  def initialize(cache_dir:)
+    @cache_dir = cache_dir
+    @cache = RspecShioriCache.new(cache_dir)
+    @disable = false
+  end
+  attr_accessor :disable
 
   def spec(example)
     if @disable
