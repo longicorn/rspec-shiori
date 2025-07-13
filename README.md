@@ -14,7 +14,19 @@ bundle install
 
 ## Usage
 
--
+disable a test case skip
+```
+it "test", shiori: false do
+  # do something
+end
+```
+
+disable all test case skip
+```bash
+$ SHIORI=false rspec spec/
+```
+
+cache directory is tmp/cache/shiori
 
 ## License
 
