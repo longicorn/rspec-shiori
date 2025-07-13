@@ -184,7 +184,7 @@ class RspecShiori
 end
 
 def RSpec.shiori
-  @shiori ||= RspecShiori.new(cache_dir: 'tmp/shiori')
+  @shiori ||= RspecShiori.new(cache_dir: 'tmp/cache/shiori')
 end
 
 RSpec.configuration.before(:suite) do |config|
