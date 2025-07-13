@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rspec-shiori (0.1.0)
+    rspec-shiori (0.2.0)
       rspec
 
 GEM
