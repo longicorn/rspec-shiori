@@ -35,19 +35,13 @@ class RspecShiori
     attr_reader :files_cache, :spec_cache
 
     def trace
-      tp = TracePoint.new(:call, :line, :return) do |t|
+      tp = TracePoint.new(:call) do |t|
+        next if tp.path.include?('/ruby/') && tp.path.include?('/gems/')
+
         case t.event
         when :call
           @call_stack << {
             event: :call,
-            class: t.defined_class,
-            method: t.method_id,
-            path: t.path,
-            lineno: t.lineno
-          }
-        when :return
-          @call_stack << {
-            event: :return,
             class: t.defined_class,
             method: t.method_id,
             path: t.path,
