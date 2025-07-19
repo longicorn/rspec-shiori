@@ -35,19 +35,13 @@ class RspecShiori
     attr_reader :files_cache, :spec_cache
 
     def trace
-      tp = TracePoint.new(:call, :line, :return) do |t|
+      tp = TracePoint.new(:call) do |t|
+        next if tp.path.include?('/ruby/') && tp.path.include?('/gems/')
+
         case t.event
         when :call
           @call_stack << {
             event: :call,
-            class: t.defined_class,
-            method: t.method_id,
-            path: t.path,
-            lineno: t.lineno
-          }
-        when :return
-          @call_stack << {
-            event: :return,
             class: t.defined_class,
             method: t.method_id,
             path: t.path,
@@ -62,6 +56,11 @@ class RspecShiori
     end
 
     def skip?
+      Gem.loaded_specs.each do |name, spec|
+        # gems is changed
+        return false unless @files_cache['gems'][name] == spec.version.to_s
+      end
+
       example_path = @example.metadata[:absolute_file_path]
       line_number = @example.metadata[:line_number].to_s
 
@@ -82,9 +81,9 @@ class RspecShiori
 
       cache['line_number'][line_number]['files'].each do |file|
         # file is not include on latest tested
-        return false unless @files_cache[file]
+        return false unless @files_cache['files'][file]
         # file is changed on latest tested
-        return false if @files_cache[file]['changed'] != true
+        return false if @files_cache['files'][file]['changed'] != true
       end
 
       true
@@ -104,11 +103,11 @@ class RspecShiori
       cache['line_number'][line_number]['files'] ||= []
       call_stack_files.each do |file|
         cache['line_number'][line_number]['files'] << file
-        unless @files_cache[file]
-          @files_cache[file] = {}
+        unless @files_cache['files'][file]
+          @files_cache['files'][file] = {}
           hexdigest = Digest::MD5.file(file).hexdigest
-          @files_cache[file]['digest'] = hexdigest
-          @files_cache[file]['changed'] = 'first'
+          @files_cache['files'][file]['digest'] = hexdigest
+          @files_cache['files'][file]['changed'] = 'first'
         end
       end
       cache['line_number'][line_number]['files'].uniq!
@@ -123,6 +122,7 @@ class RspecShiori
         .reject{|path|path.match(/\<.*?\>/)}
         .reject{|path|path.match(/\(.*?\)/)}
         .reject{|path|path.match(/\/.rbenv\//)}
+        .reject{|path|path.include?('/ruby/') && path.include?('/gems/')}
       files << @example.metadata[:absolute_file_path]
       files.sort.uniq
     end
@@ -152,12 +152,17 @@ class RspecShiori
     case key
     when :file
       @files_cache = {}
+      @files_cache['gems'] = {}
+      @files_cache['files'] = {}
       cache = @cache.read("#{@cache_dir}/file.json")
-      cache.each do |path, hexdigest|
-        @files_cache[path] = {}
+      cache['gems']&.each do |name, version|
+        @files_cache['gems'][name] = version
+      end
+      cache['files']&.each do |path, hexdigest|
+        @files_cache['files'][path] = {}
         current_digest = Digest::MD5.file(path).hexdigest
-        @files_cache[path]['digest'] = current_digest
-        @files_cache[path]['changed'] = (current_digest == hexdigest)
+        @files_cache['files'][path]['digest'] = current_digest
+        @files_cache['files'][path]['changed'] = (current_digest == hexdigest)
       end
     when :spec
       @spec_cache ||= {}
@@ -171,8 +176,13 @@ class RspecShiori
     return if @disable
 
     files_cache = {}
-    @files_cache.each do |path, hash|
-      files_cache[path] = hash['digest']
+    files_cache['gems'] = {}
+    Gem.loaded_specs.each do |name, spec|
+      files_cache['gems'][name] = spec.version.to_s
+    end
+    files_cache['files'] = {}
+    @files_cache['files'].each do |path, hash|
+      files_cache['files'][path] = hash['digest']
     end
     File.write("#{@cache_dir}/file.json", JSON.dump(files_cache))
 
