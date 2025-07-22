@@ -14,16 +14,19 @@ bundle install
 
 ## Usage
 
+rspec-shiori is default disabled
+
+enable all test case skip
+```bash
+$ SHIORI=true rspec spec/
+$ SHIORI=1 rspec spec/
+```
+
 disable a test case skip
 ```
 it "test", shiori: false do
   # do something
 end
-```
-
-disable all test case skip
-```bash
-$ SHIORI=false rspec spec/
 ```
 
 cache directory is tmp/cache/shiori

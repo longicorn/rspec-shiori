@@ -133,7 +133,7 @@ class RspecShiori
   def initialize(cache_dir:)
     @cache_dir = cache_dir
     @cache = RspecShioriCache.new(cache_dir)
-    @disable = false
+    @disable = true
   end
   attr_accessor :disable
 
@@ -198,7 +198,7 @@ def RSpec.shiori
 end
 
 RSpec.configuration.before(:suite) do |config|
-  RSpec.shiori.disable = ENV['SHIORI'] == 'false'
+  RSpec.shiori.disable = !(['1', 'true'].include?(ENV['SHIORI']))
   RSpec.shiori.read_cache(:file)
 end
 
