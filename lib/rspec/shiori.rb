@@ -206,7 +206,9 @@ RSpec.configuration.around(:each) do |example|
   RSpec.shiori.read_cache(:spec, example)
   RSpec.shiori.spec(example) do |shiori_spec|
     if shiori_spec.skip? && example.metadata[:shiori] != false
-      example.skip
+      example.execution_result.pending_fixed = true
+      example.execution_result.pending_message = 'skipped by rspec-shiori'
+      example.run
       next
     end
 
