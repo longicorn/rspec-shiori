@@ -2,21 +2,23 @@
 
 require 'fileutils'
 
-class RspecShioriCache
-  def initialize(cache_dir)
-    @cache_dir = cache_dir
-    FileUtils.mkdir_p(@cache_dir)
-  end
+class RspecShiori
+  class Cache
+    def initialize(cache_dir)
+      @cache_dir = cache_dir
+      FileUtils.mkdir_p(@cache_dir)
+    end
 
-  def read(path)
-    return {} unless File.exist?(path)
+    def read(path)
+      return {} unless File.exist?(path)
 
-    str = File.read(path)
-    JSON.parse(str)
-  end
+      str = File.read(path)
+      JSON.parse(str)
+    end
 
-  def write(path, hash)
-    str = JSON.dump(hash)
-    File.write(path, str)
+    def write(path, hash)
+      str = JSON.dump(hash)
+      File.write(path, str)
+    end
   end
 end
