@@ -9,7 +9,7 @@ require_relative 'shiori/hook'
 class RspecShiori
   def initialize(cache_dir:)
     @cache_dir = cache_dir
-    @cache = RspecShioriCache.new(cache_dir)
+    @cache = Cache.new(cache_dir)
     @disable = true
   end
   attr_accessor :disable
